@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Mental Quiz</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#687386;--accent:#2563eb;--good:#16a34a;--bad:#dc2626}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body.dark{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--muted:#cbd5e1}
+body.medium{--bg:#e9eef5;--card:#f8fafc}
+.container{max-width:760px;margin:auto;padding:20px}.card{background:var(--card);border-radius:22px;padding:24px;box-shadow:0 10px 30px #00000012}
+h1,h2{text-align:center;margin-top:0}.subtitle{text-align:center;color:var(--muted)}
+.hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid.three{grid-template-columns:repeat(3,1fr)}
+button{border:0;border-radius:14px;padding:15px 12px;font-size:16px;font-weight:700;cursor:pointer;background:#e8eef8;color:var(--text);transition:.15s}
+button:hover{transform:translateY(-1px)}button.primary{background:var(--accent);color:white;width:100%;margin-top:15px}
+.category.selected,.difficulty.selected{outline:3px solid var(--accent);background:#dbeafe}
+.statbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}.stat{padding:10px;border-radius:12px;background:#eef2f7;text-align:center;font-weight:700}.dark .stat{background:#334155}
+.label{display:block;font-size:12px;color:var(--muted);font-weight:600}.value{font-size:20px}
+.timer{height:14px;background:#e5e7eb;border-radius:20px;overflow:hidden;margin:12px 0 20px}.timerbar{height:100%;background:var(--accent);width:100%;transition:width .1s linear}
+.question{text-align:center;font-size:42px;font-weight:800;margin:25px 0}.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.answer{font-size:22px;min-height:68px}
+.answer.correct{background:#bbf7d0;color:#166534}.answer.wrong{background:#fecaca;color:#991b1b}
+.feedback{text-align:center;min-height:28px;font-weight:700;margin:14px 0}.good{color:var(--good)}.bad{color:var(--bad)}
+.center{text-align:center}.score-big{font-size:52px;font-weight:900;color:var(--accent)}
+.small{font-size:13px;color:var(--muted)}.theme-row{display:flex;gap:8px;justify-content:center;margin-top:15px}.theme-row button{padding:10px 14px}
+@media(max-width:520px){.container{padding:12px}.card{padding:18px}.grid,.answers{grid-template-columns:1fr}.grid.three{grid-template-columns:1fr 1fr 1fr}.question{font-size:34px}.statbar{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<section id="home" class="card">
+<h1>🧠 Math Mental Quiz</h1>
+<p class="subtitle">Think fast. Answer correctly. Beat your best score!</p>
+
+<h2>Choose Category</h2>
+<div class="grid">
+<button class="category selected" data-cat="addition">➕ Addition</button>
+<button class="category" data-cat="subtraction">➖ Subtraction</button>
+<button class="category" data-cat="multiplication">✖️ Multiplication</button>
+<button class="category" data-cat="division">➗ Division</button>
+<button class="category" data-cat="combined">🔢 Combined</button>
+</div>
+
+<h2 style="margin-top:25px">Choose Difficulty</h2>
+<div class="grid three">
+<button class="difficulty selected" data-level="easy">Easy</button>
+<button class="difficulty" data-level="medium">Medium</button>
+<button class="difficulty" data-level="hard">Hard</button>
+</div>
+
+<button id="startBtn" class="primary">▶ START SINGLE PLAYER</button>
+<div class="theme-row">
+<button onclick="setTheme('light')">☀️ Light</button>
+<button onclick="setTheme('medium')">◐ Medium</button>
+<button onclick="setTheme('dark')">🌙 Dark</button>
+</div>
+<p class="small center">Single Player: answer before the countdown reaches zero. Wrong answers and time-outs cost a life.</p>
+</section>
+
+<section id="game" class="card hidden">
+<div class="statbar">
+<div class="stat"><span class="label">Score</span><span id="score" class="value">0</span></div>
+<div class="stat"><span class="label">Lives</span><span id="lives" class="value">❤️❤️❤️</span></div>
+<div class="stat"><span class="label">Streak</span><span id="streak" class="value">0</span></div>
+<div class="stat"><span class="label">Question</span><span id="qnum" class="value">1</span></div>
+</div>
+<div class="timer"><div id="timerbar" class="timerbar"></div></div>
+<div id="timeText" class="center small">5.0 seconds</div>
+<div id="question" class="question">?</div>
+<div id="answers" class="answers"></div>
+<div id="feedback" class="feedback"></div>
+<button id="quitBtn" style="width:100%;margin-top:8px">Quit Game</button>
+</section>
+
+<section id="result" class="card hidden">
+<h1>🏁 Game Over</h1>
+<p class="subtitle" id="resultReason"></p>
+<div class="center">
+<div class="score-big" id="finalScore">0</div>
+<p>POINTS</p>
+</div>
+<div class="grid">
+<div class="stat"><span class="label">Correct</span><span id="correctFinal" class="value">0</span></div>
+<div class="stat"><span class="label">Wrong</span><span id="wrongFinal" class="value">0</span></div>
+<div class="stat"><span class="label">Best Streak</span><span id="bestFinal" class="value">0</span></div>
+<div class="stat"><span class="label">Best Score</span><span id="bestScore" class="value">0</span></div>
+</div>
+<button id="againBtn" class="primary">🔄 PLAY AGAIN</button>
+<button id="homeBtn" style="width:100%;margin-top:10px">🏠 HOME</button>
+</section>
+</div>
+
+<script>
+let category="addition", level="easy";
+let score=0,lives=3,streak=0,bestStreak=0,correct=0,wrong=0,questionNo=0;
+let currentAnswer=null, timer=null, locked=false;
+let timeLimit=5, remaining=5;
+
+const levels={
+ easy:{max:20,time:6},
+ medium:{max:50,time:5},
+ hard:{max:100,time:4}
+};
+
+document.querySelectorAll(".category").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".category").forEach(x=>x.classList.remove("selected"));
+ b.classList.add("selected"); category=b.dataset.cat;
+});
+document.querySelectorAll(".difficulty").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".difficulty").forEach(x=>x.classList.remove("selected"));
+ b.classList.add("selected"); level=b.dataset.level;
+});
+function setTheme(t){
+ document.body.className=t==="dark"?"dark":t==="medium"?"medium":"";
+ localStorage.setItem("mathTheme",t);
+}
+setTheme(localStorage.getItem("mathTheme")||"light");
+
+function rand(n){return Math.floor(Math.random()*n)+1}
+function makeQuestion(){
+ let a,b,op,ans;
+ const max=levels[level].max;
+ let cat=category;
+ if(cat==="combined") cat=["addition","subtraction","multiplication","division"][rand(4)-1];
+
+ if(cat==="addition"){
+   a=rand(max); b=rand(max); op="+"; ans=a+b;
+ } else if(cat==="subtraction"){
+   a=rand(max); b=rand(max); if(b>a)[a,b]=[b,a]; op="−"; ans=a-b;
+ } else if(cat==="multiplication"){
+   const m=level==="easy"?10:level==="medium"?15:20;
+   a=rand(m); b=rand(m); op="×"; ans=a*b;
+ } else {
+   b=rand(level==="easy"?10:level==="medium"?15:20);
+   ans=rand(level==="easy"?10:level==="medium"?30:100);
+   a=b*ans; op="÷";
+ }
+ return {text:`${a} ${op} ${b} = ?`,answer:ans};
+}
+function choices(answer){
+ const set=new Set([answer]);
+ while(set.size<4){
+   let delta=rand(Math.max(5,Math.floor(Math.abs(answer)*0.35)+3));
+   if(Math.random()<.5) delta=-delta;
+   let v=answer+delta;
+   if(v>=0)set.add(v);
+ }
+ return [...set].sort(()=>Math.random()-.5);
+}
+function startGame(){
+ score=0;lives=3;streak=0;bestStreak=0;correct=0;wrong=0;questionNo=0;
+ document.getElementById("home").classList.add("hidden");
+ document.getElementById("result").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ nextQuestion();
+}
+function nextQuestion(){
+ locked=false; questionNo++;
+ const q=makeQuestion(); currentAnswer=q.answer;
+ document.getElementById("question").textContent=q.text;
+ document.getElementById("qnum").textContent=questionNo;
+ document.getElementById("score").textContent=score;
+ document.getElementById("streak").textContent=streak;
+ document.getElementById("lives").textContent="❤️".repeat(lives)+"🖤".repeat(3-lives);
+ document.getElementById("feedback").textContent="";
+ const box=document.getElementById("answers");box.innerHTML="";
+ choices(q.answer).forEach(v=>{
+   const b=document.createElement("button");b.className="answer";b.textContent=v;
+   b.onclick=()=>answer(v,b);box.appendChild(b);
+ });
+ startTimer();
+}
+function startTimer(){
+ clearInterval(timer);
+ timeLimit=levels[level].time; remaining=timeLimit;
+ const bar=document.getElementById("timerbar"), txt=document.getElementById("timeText");
+ timer=setInterval(()=>{
+   remaining-=.1;
+   bar.style.width=Math.max(0,remaining/timeLimit*100)+"%";
+   txt.textContent=Math.max(0,remaining).toFixed(1)+" seconds";
+   if(remaining<=0){clearInterval(timer);timeout();}
+ },100);
+}
+function answer(v,btn){
+ if(locked)return;
+ locked=true;clearInterval(timer);
+ const all=document.querySelectorAll(".answer");all.forEach(x=>x.disabled=true);
+ if(v===currentAnswer){
+   btn.classList.add("correct"); correct++; streak++; bestStreak=Math.max(bestStreak,streak);
+   const bonus=Math.max(0,Math.floor(remaining*2));
+   score+=10+bonus+Math.max(0,streak-1)*2;
+   document.getElementById("feedback").innerHTML=`<span class="good">✓ Correct! +${10+bonus} points</span>`;
+ }else{
+   btn.classList.add("wrong"); wrong++; streak=0; lives--;
+   all.forEach(x=>{if(Number(x.textContent)===currentAnswer)x.classList.add("correct")});
+   document.getElementById("feedback").innerHTML=`<span class="bad">✗ Correct answer: ${currentAnswer}</span>`;
+ }
+ updateStats();
+ setTimeout(()=>{if(lives<=0)endGame("You lost all your lives.");else nextQuestion()},650);
+}
+function timeout(){
+ if(locked)return; locked=true;wrong++;streak=0;lives--;
+ document.querySelectorAll(".answer").forEach(x=>{x.disabled=true;if(Number(x.textContent)===currentAnswer)x.classList.add("correct")});
+ document.getElementById("feedback").innerHTML=`<span class="bad">⏰ Time's up! Answer: ${currentAnswer}</span>`;
+ updateStats();
+ setTimeout(()=>{if(lives<=0)endGame("Time ran out and you lost all your lives.");else nextQuestion()},700);
+}
+function updateStats(){
+ document.getElementById("score").textContent=score;
+ document.getElementById("streak").textContent=streak;
+ document.getElementById("lives").textContent="❤️".repeat(lives)+"🖤".repeat(3-lives);
+}
+function endGame(reason){
+ clearInterval(timer);
+ document.getElementById("game").classList.add("hidden");
+ document.getElementById("result").classList.remove("hidden");
+ document.getElementById("resultReason").textContent=reason;
+ document.getElementById("finalScore").textContent=score;
+ document.getElementById("correctFinal").textContent=correct;
+ document.getElementById("wrongFinal").textContent=wrong;
+ document.getElementById("bestFinal").textContent=bestStreak;
+ let best=Number(localStorage.getItem("mathBestScore")||0);
+ if(score>best){best=score;localStorage.setItem("mathBestScore",score)}
+ document.getElementById("bestScore").textContent=best;
+}
+document.getElementById("startBtn").onclick=startGame;
+document.getElementById("againBtn").onclick=startGame;
+document.getElementById("homeBtn").onclick=()=>{
+ document.getElementById("result").classList.add("hidden");document.getElementById("home").classList.remove("hidden");
+};
+document.getElementById("quitBtn").onclick=()=>endGame("You ended the game.");
+</script>
+</body>
+</html>
